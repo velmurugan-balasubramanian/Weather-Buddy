@@ -1,6 +1,6 @@
-## Your First App
+## Weather Buddy
 
-Congratulations on creating your first app! Feel free to replace this text with your app's actual description.
+Weather Buddy is a Freshdesk App that helps the Agent in finding current weather in his/her city and weather of other cities on a future date (within 5 days from present day) upon selection and store five recently accessed cities. 
 
 ### Folder structure explained
      
