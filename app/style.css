@@ -1,7 +1,6 @@
-.logo {
-  background: url('freshdesk_logo.png');
-  background-repeat: no-repeat;
-  background-size: contain;
-  height: 25px;
-  margin-top: 25px;
+.no-padding-left{
+  padding-left: 0px;
+}
+.list-country{
+  list-style-type: none;
 }
