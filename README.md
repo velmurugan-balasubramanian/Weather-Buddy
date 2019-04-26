@@ -7,15 +7,15 @@ Congratulations on creating your first app! Feel free to replace this text with 
           Weather-Buddy
           ├── README.md
           ├── app
-          │   ├── app.js
+          │   ├── app.js                        Js file in which the app logic is written
           │   ├── city-list.js
           │   ├── icon.svg
-          │   ├── logger.js
-          │   ├── style.css
-          │   └── template.html
+          │   ├── logger.js                     Custom logger file to aviod logging on console
+          │   ├── style.css                     Custom styles
+          │   └── template.html                 Markup of the app 
           ├── config
           │   ├── iparam_test_data.json
-          │   └── iparams.json
+          │   └── iparams.json                  
           ├── coverage
           │   ├── app
           │   │   ├── app-config.js.html
