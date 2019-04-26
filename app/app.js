@@ -33,12 +33,12 @@
 
               },
                 function (e) {
-                  console.log(e);
+                  fdLogger.log(e);
 
                   // failure operation
                 })
               .catch(function (e) {
-                console.log(e);
+                fdLogger.log(e);
               });
 
             /**
@@ -84,7 +84,7 @@
                   currentWeather(api_key, city);
                 })
                 .catch(function (e) {
-                  console.log(e);
+                  fdLogger.log(e);
                 });
             }
 
@@ -109,7 +109,7 @@
                     $('#current-windspeed').append(`<div> ${windSpeed} km/hr </div>`);
                   },
                   function (e) {
-                    console.log(e);
+                    fdLogger.log(e);
                   });
             }
 
@@ -158,10 +158,10 @@
 
                 },
                   function (e) {
-                    console.log(e);
+                    fdLogger.log(e);
                   })
                 .catch(function (e) {
-                  console.log(e);
+                  fdLogger.log(e);
                 });
             }
 
@@ -247,7 +247,7 @@
           });
       })
       .catch(function (e) {
-        console.log(e);
+        fdLogger.log(e);
       });
   });
 }
