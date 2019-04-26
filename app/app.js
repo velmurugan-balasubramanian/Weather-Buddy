@@ -114,8 +114,6 @@
                     windSpeed = windSpeed * TO_KMPH;
                     windSpeed = windSpeed.toFixed(2);
                     $('#current-temp').append(`<div> ${weatherInCelsius} &#8451;</div>`);
-
-
                     $('#current-windspeed').append(`<div> ${windSpeed} km/hr </div>`);
                   },
                   function (e) {
