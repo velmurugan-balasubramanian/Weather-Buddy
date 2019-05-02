@@ -1,52 +1,51 @@
 <html>
 
-<head>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-  <script src="https://static.freshdev.io/fdk/2.0/assets/fresh_client.js"></script>
-  <script src="app.js"></script>
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <link rel="stylesheet" type="text/css" href="https://static.freshdev.io/fdk/2.0/assets/freshdesk.css">
-</head>
-
-<body>
-
-  <div id="widget" class="fw-widget-wrapper">
-    <h3>Weather Buddy</h3>
-    <div class="fw-content-list">
-      <div class="muted">Agent's city</div>
-      <div id="current-city"></div>
-    </div>
-    <div class="fw-divider"></div>
-    <div id="current-temp" class="fw-content-list">
-      <div class="muted">current Temperature</div>
-    </div>
-    <div id="current-windspeed" class="fw-content-list">
-      <div class="muted">current wind Speed</div>
-    </div>
-    <div class="fw-divider"></div>
-    <h3 class="muted ">Recently Accessed Cities</h3>
-    <div class="fw-content-list">
-      <ul class="no-padding-left" id="lastFiveCities">
-      </ul>
-    </div>
-    <div class="fw-divider"></div>
-    <div>
-      <div class="form-group">
-        <div class="muted">Entert City to Forecast Weather</div>
-        <input id="selected-city" type="text"> </input>
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://static.freshdev.io/fdk/2.0/assets/fresh_client.js"></script>
+    <script src="app.js"></script>
+    <script src="logger.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="https://static.freshdev.io/fdk/2.0/assets/freshdesk.css">
+  </head>
+  <body>
+    <div id="widget" class="fw-widget-wrapper">
+      <h3>Weather Buddy</h3>
+      <div id="agent-city" class="fw-content-list">
+        <div class="muted">Agent's city</div>
+        <div id="current-city"></div>
       </div>
       <div class="fw-divider"></div>
-      <div class="form-group">
-        <div class="muted">Select a Date for Forecast</div>
-        <input type="date" id="weather-date">
+      <div id="current-temp" class="fw-content-list">
+        <div class="muted">current Temperature</div>
       </div>
-      <div id="forecast"></div>
-      <button type="submit" id="find-weather" class="btn btn-primary">Submit</button>
+      <div id="current-windspeed" class="fw-content-list">
+        <div class="muted">current wind Speed</div>
+      </div>
+      <div class="fw-divider"></div>
+      <h3 class="muted ">Recently Accessed Cities</h3>
+      <div id="recent-cities" class="fw-content-list">
+        <ul class="no-padding-left" id="lastFiveCities">
+        </ul>
+      </div>
+      <div class="fw-divider"></div>
+      <div id="forecast-inputs">
+        <div class="form-group">
+          <div class="muted">Entert City to Forecast Weather</div>
+          <input id="selected-city" type="text"> </input>
+        </div>
+        <div class="fw-divider"></div>
+        <div class="form-group">
+          <div class="muted">Select a Date for Forecast</div>
+          <input type="date" id="weather-date">
+        </div>
+        <div id="forecast"></div>
+        <button type="submit" id="find-weather" class="btn btn-primary">Submit</button>
+      </div>
     </div>
-  </div>
-  </div>
-  <div id="error">
-  </div>
-</body>
+    </div>
+    <div id="error">
+    </div>
+  </body>
 </html>

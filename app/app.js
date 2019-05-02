@@ -10,30 +10,17 @@
         const TO_CELSIUS = 273.15;                                                          // Constant used in converting kelvin value to degree celsius
         const TO_KMPH = 3.6;
         var city = "";
-        var forecastArray = ["chennai"];
+        var forecastArray = [];
         client.events.on('app.activated',
           function () {
 
-            /**
-             * @param
-             * api_key: 
-             * @description
-             * Fetch api_key from iparams and invoke necessary functions on load 
-             */
-            client.iparams.get("api_key")
-              .then(function () {
+            // Function invocations
+            getLastFiveCities();
+            dateOperations();
+            getCurrentWeather();
+            bindEventListeners();
+            setDefaultCityList();
 
-                // Function invocations
-                getLastFiveCities();
-                dateOperations();
-                getCurrentWeather();
-                bindEventListeners();
-                setDefaultCityList();
-
-              })
-              .catch(function () {
-                displayError("Unable to display weather, Please try again later");
-              });
 
             /**
              * combination of functions that are invoked on event.
@@ -47,6 +34,7 @@
               $('#lastFiveCities').click(showRecentForecast);
             }
 
+            
             /**
              * 
              * @param {*} event 
@@ -72,12 +60,13 @@
                 .then(function (data) {
                   city = data.contact.time_zone
                   $('#current-city').text(city);
-                  fetchWeatherHelper(city);
+                  fetchCurrentWeatherHelper(city);
                 })
                 .catch(function () {
-                  displayError("Unable to Feth your Time Zone")
+                  displayNotification("Unable to Feth your Time Zone")
                 });
             }
+
 
             /**
              * 
@@ -86,11 +75,13 @@
              * @description
              * function that makes an api call to weather api and appends the output to HTML
              */
-            function fetchWeatherHelper(currrentCity) {
+            function fetchCurrentWeatherHelper(currrentCity) {
+
 
               client.request.get(`${CURRENT_URL}q=${currrentCity}&appid=<%=iparam.api_key%>`)
                 .then(
                   function (data) {
+
 
                     var weatherInCelsius = JSON.parse(data.response).main.temp - TO_CELSIUS;
                     weatherInCelsius = weatherInCelsius.toFixed(2);
@@ -99,12 +90,16 @@
                     windSpeed = windSpeed.toFixed(2);
                     $('#current-temp').append(`<div> ${weatherInCelsius} &#8451;</div>`);
                     $('#current-windspeed').append(`<div> ${windSpeed} km/hr </div>`);
+
+
                   })
                 .catch(function () {
-                  //fdLogger.log(e);
-                  displayError("Unable to Display weather right now, Please refresh the page or try again later")
+
+                  displayNotification("Unable to Display weather right now, Please refresh the page or try again later");
+
                 });
             }
+
 
             /**
              * Function to get weather forecast for a selected city and date
@@ -114,25 +109,22 @@
               // Fetch User Inputs 
               var choosenDate = $('#weather-date').val();
               var choosenCity = $('#selected-city').val();
+
               client.request.get(`${FORECAST_URL}q=${choosenCity}&appid=<%=iparam.api_key%>`)
                 .then(function (data) {
                   const resultArray = JSON.parse(data.response).list;
                   var forecast = "";
                   var forecastWeather = "";
                   var forecastWindSpeed = "";
+                  var forecast = filterArray(resultArray);
 
-                  for (var data of resultArray) {
-                    if (data.dt_txt == choosenDate + " 06:00:00") {
-                      forecast = data;
-                      forecastWeather = forecast.main.temp;
-                      forecastWeather = forecastWeather - TO_CELSIUS;
-                      forecastWeather = forecastWeather.toFixed(2);
-                      forecastWindSpeed = forecast.wind.speed;
-                      forecastWindSpeed = forecastWindSpeed * TO_KMPH;
-                      forecastWindSpeed = forecastWindSpeed.toFixed(2);
-                      break;
-                    }
-                  }
+                  forecastWeather = forecast[0].main.temp;
+                  forecastWeather = forecastWeather - TO_CELSIUS;
+                  forecastWeather = forecastWeather.toFixed(2);
+                  forecastWindSpeed = forecast[0].wind.speed;
+                  forecastWindSpeed = forecastWindSpeed * TO_KMPH;
+                  forecastWindSpeed = forecastWindSpeed.toFixed(2);
+
                   $('#forecast').empty();
                   $('#forecast').append(`
                   <h3>Weather Forecast at ${choosenCity} on ${choosenDate}</h3>
@@ -146,14 +138,22 @@
                   </div>`);
                   // save current city into recently searched city in array in local storage, if not already available
                   storeLastFiveCities(choosenCity);
-
                 },
                   function (e) {
-                    displayError(JSON.parse(e.response).message);
+                    displayNotification(JSON.parse(e.response).message);
                   })
                 .catch(function () {
-                  displayError("Unbale to Show forecast, Please try again after sometime");
+                  displayNotification("Unbale to Show forecast, Please try again after sometime");
                 });
+
+              function filterArray(resultArray) {
+
+                var forecast = resultArray.filter(function (data) {
+                  return (data.dt_txt === choosenDate + " 06:00:00");
+                });
+
+                return forecast;
+              }
             }
 
 
@@ -165,7 +165,6 @@
              */
             function storeLastFiveCities(forecastCity) {
 
-
               client.db.get("weather").then((data) => {
                 forecastArray = data.forecast;
 
@@ -175,12 +174,11 @@
                   }
                   forecastArray.unshift(forecastCity);
                 }
-
                 setData(forecastArray);
-
               }).catch(function () {
-                displayError("Unable to fetch Recent weather data from storage");
+                displayNotification("Unable to fetch Recent weather data from storage");
               });
+
 
               /**
                * @param {*} forecastArray 
@@ -192,12 +190,11 @@
                 client.db.set("weather", { "forecast": forecastArray }).then(() => {
                   getLastFiveCities();
                 }, () => {
-                  displayError("Unable to save the recently accessed city")
+                  displayNotification("Unable to save the recently accessed city")
                 });
-
               }
-
             }
+
 
             /**
              * @description
@@ -211,7 +208,7 @@
                 displayLastFiveCities(lastFiveCities);
 
               }).catch(function () {
-                displayError("Unable to fetch Recent weather data from storage");
+                displayNotification("Unable to fetch Recent weather data from storage");
               });
 
               function displayLastFiveCities(lastFiveCities) {
@@ -219,8 +216,8 @@
                   $('#lastFiveCities').append(`<li class="list-country"><a href="#Weather-forecast-details">${data}</a></li>`)
                 });
               }
-
             }
+
 
             /**
              * @description
@@ -252,26 +249,37 @@
              */
             function setDefaultCityList() {
               client.db.set("weather", { "forecast": ["Chennai", "Mumbai", "Dubai", "London", "Paris"] }, { setIf: "not_exist" }).then(() => {
-                displayError("list of default cities set")
+                displayNotification("list of default cities set")
               }, function () {
-                console.log("Recent City list updated");
+
+                fdLogger.log("Recent City list updated to display on load");
 
               });
             }
           });
       })
-      .catch(function (e) {
-        //fdLogger.log(e);
-        displayError(e.toString);
+      .catch(function () {
+
+        fdLogger.log("Error initializing App, Sorry for the inconvenience");
 
       });
-    function displayError(error) {
+
+
+    /**
+     * 
+     * @param {*} error 
+     * error is passed during function invocation
+     * @description
+     * function to display notification to end user 
+     */
+    function displayNotification(error) {
 
       $('#error').append(`<div class="alert alert-danger alert-dismissible">
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
           ${error}
       </div>`);
 
+      // To Display the notification on view port 
       $("#error").css("top", $("body").scrollTop() + "px")
 
     }

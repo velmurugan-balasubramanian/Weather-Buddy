@@ -18,6 +18,6 @@
   background-color: #f2dede;
   border-color: #ebccd1;
 }
-.alert-dismissable, .alert-dismissible {
+.alert-dismissable{
   padding-right: 35px;
 }
