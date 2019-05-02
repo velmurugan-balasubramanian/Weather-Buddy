@@ -10,7 +10,7 @@
         const TO_CELSIUS = 273.15;                                                          // Constant used in converting kelvin value to degree celsius
         const TO_KMPH = 3.6;
         var city = "";
-        var forecastArray = [];
+        var forecastArray = ["chennai"];
         client.events.on('app.activated',
           function () {
 
@@ -18,38 +18,30 @@
              * @param
              * api_key: 
              * @description
-             * Fetch API key from iparams and invoke necessary functions on load 
+             * Fetch api_key from iparams and invoke necessary functions on load 
              */
             client.iparams.get("api_key")
-              .then(function (data) {
-                const API_KEY = data.api_key;
+              .then(function () {
 
                 // Function invocations
-                getCities();
                 getLastFiveCities();
                 dateOperations();
-                getCurrentWeather(API_KEY);
-                bindEventListeners(API_KEY);
+                getCurrentWeather();
+                bindEventListeners();
+                setDefaultCityList();
 
-              },
-                function (e) {
-                  fdLogger.log(e);
-
-                  // failure operation
-                })
-              .catch(function (e) {
-                fdLogger.log(e);
+              })
+              .catch(function () {
+                displayError("Unable to display weather, Please try again later");
               });
 
             /**
-             * @param {*} API_KEY
-             * @description
              * combination of functions that are invoked on event.
              */
-            function bindEventListeners(API_KEY) {
+            function bindEventListeners() {
 
               $("#find-weather").click(() => {
-                getWeatherForecast(API_KEY)
+                getWeatherForecast()
               });
 
               $('#lastFiveCities').click(showRecentForecast);
@@ -58,6 +50,7 @@
             /**
              * 
              * @param {*} event 
+             * event that are triggered while accessing the displayed city
              * @description
              * Function to provide access recenlty visted city
              */
@@ -70,33 +63,32 @@
 
             /**
              * 
-             * @param {*} api_key 
-             * @description
-             * Get current weather of Agent's current City
+             * Get current weather of Agent's Time Zone
              */
-            function getCurrentWeather(api_key) {
+            function getCurrentWeather() {
 
-              // Fetching Agent data to find Agent's city using data API
+              // Fetching Agent data to find Agent's Time Zone using data API
               client.data.get('contact')
                 .then(function (data) {
                   city = data.contact.time_zone
                   $('#current-city').text(city);
-                  currentWeather(api_key, city);
+                  fetchWeatherHelper(city);
                 })
-                .catch(function (e) {
-                  fdLogger.log(e);
+                .catch(function () {
+                  displayError("Unable to Feth your Time Zone")
                 });
             }
 
             /**
              * 
-             * @param {*} api_key 
+             * @param {*} currrentCity
+             * currrentCity is the time zone of the agent fetched from freshDesk Data API
              * @description
              * function that makes an api call to weather api and appends the output to HTML
              */
-            function currentWeather(api_key, currrentCity) {
+            function fetchWeatherHelper(currrentCity) {
 
-              client.request.get(`${CURRENT_URL}q=${currrentCity}&appid=${api_key}`)
+              client.request.get(`${CURRENT_URL}q=${currrentCity}&appid=<%=iparam.api_key%>`)
                 .then(
                   function (data) {
 
@@ -107,29 +99,28 @@
                     windSpeed = windSpeed.toFixed(2);
                     $('#current-temp').append(`<div> ${weatherInCelsius} &#8451;</div>`);
                     $('#current-windspeed').append(`<div> ${windSpeed} km/hr </div>`);
-                  },
-                  function (e) {
-                    fdLogger.log(e);
-                  });
+                  })
+                .catch(function () {
+                  //fdLogger.log(e);
+                  displayError("Unable to Display weather right now, Please refresh the page or try again later")
+                });
             }
 
             /**
-             * 
-             * @param {*} api_key 
-             * @description
              * Function to get weather forecast for a selected city and date
              */
-            function getWeatherForecast(api_key) {
+            function getWeatherForecast() {
 
               // Fetch User Inputs 
               var choosenDate = $('#weather-date').val();
               var choosenCity = $('#selected-city').val();
-              client.request.get(`${FORECAST_URL}q=${choosenCity}&appid=${api_key}`)
+              client.request.get(`${FORECAST_URL}q=${choosenCity}&appid=<%=iparam.api_key%>`)
                 .then(function (data) {
                   const resultArray = JSON.parse(data.response).list;
                   var forecast = "";
                   var forecastWeather = "";
                   var forecastWindSpeed = "";
+
                   for (var data of resultArray) {
                     if (data.dt_txt == choosenDate + " 06:00:00") {
                       forecast = data;
@@ -158,29 +149,11 @@
 
                 },
                   function (e) {
-                    fdLogger.log(e);
+                    displayError(JSON.parse(e.response).message);
                   })
-                .catch(function (e) {
-                  fdLogger.log(e);
+                .catch(function () {
+                  displayError("Unbale to Show forecast, Please try again after sometime");
                 });
-            }
-
-            /**
-             * 
-             * @param {*} api_key 
-             * @description
-             * Function to get Get List of Cities for city DropDown
-             */
-            function getCities() {
-
-              // Fetch Defined cities list from module defined in city-list.js
-              const CITIES_LIST = fdWeatherApp.getDefaultCityList();
-
-
-              // append city list to city select box in Template.html
-              CITIES_LIST.forEach(function (data) {
-                $('#selected-city').append(`<option value="${data}">${data}</option>`);
-              })
             }
 
 
@@ -190,24 +163,40 @@
              * @description
              * Function to check the local storage and save recently accesed non repeating city
              */
-            function storeLastFiveCities(forecast) {
+            function storeLastFiveCities(forecastCity) {
 
-              var storedData = localStorage.getItem("forecast");
 
-              if (storedData == null) {
-                localStorage.setItem("forecast", JSON.stringify(forecastArray));
-              }
+              client.db.get("weather").then((data) => {
+                forecastArray = data.forecast;
 
-              forecastArray = JSON.parse(localStorage.getItem("forecast"));
-
-              if (!forecastArray.includes(forecast)) {
-                if (forecastArray.length === 5) {
-                  forecastArray.splice(0, 1);
+                if (!forecastArray.includes(forecastCity)) {
+                  if (forecastArray.length === 5) {
+                    forecastArray.splice(4, 5);
+                  }
+                  forecastArray.unshift(forecastCity);
                 }
-                forecastArray.unshift(forecast);
+
+                setData(forecastArray);
+
+              }).catch(function () {
+                displayError("Unable to fetch Recent weather data from storage");
+              });
+
+              /**
+               * @param {*} forecastArray 
+               * forecastArray is the list of recently accessed cities
+               * @description
+               * the function acts as a helper function to set data in freshdesk storage
+               */
+              function setData(forecastArray) {
+                client.db.set("weather", { "forecast": forecastArray }).then(() => {
+                  getLastFiveCities();
+                }, () => {
+                  displayError("Unable to save the recently accessed city")
+                });
+
               }
-              localStorage.setItem("forecast", JSON.stringify(forecastArray));
-              getLastFiveCities();
+
             }
 
             /**
@@ -216,11 +205,21 @@
              */
             function getLastFiveCities() {
 
-              var lastFiveCities = JSON.parse(localStorage.getItem("forecast")) || [];
-              $('#lastFiveCities').empty();
-              lastFiveCities.forEach(function (data) {
-                $('#lastFiveCities').append(`<li class="list-country"><a href="#Weather-forecast-details">${data}</a></li>`)
-              })
+              client.db.get("weather").then((data) => {
+                var lastFiveCities = data.forecast;
+                $('#lastFiveCities').empty();
+                displayLastFiveCities(lastFiveCities);
+
+              }).catch(function () {
+                displayError("Unable to fetch Recent weather data from storage");
+              });
+
+              function displayLastFiveCities(lastFiveCities) {
+                lastFiveCities.forEach(function (data) {
+                  $('#lastFiveCities').append(`<li class="list-country"><a href="#Weather-forecast-details">${data}</a></li>`)
+                });
+              }
+
             }
 
             /**
@@ -244,10 +243,37 @@
               $("#weather-date").attr("max", endDate);
               $("#weather-date").attr("value", startdate);
             }
+
+
+            /**
+             * @description
+             * function to provide a default list of 5 cities, when the app is accessed for the first time,
+             * which will be updated when the user searches for new cities
+             */
+            function setDefaultCityList() {
+              client.db.set("weather", { "forecast": ["Chennai", "Mumbai", "Dubai", "London", "Paris"] }, { setIf: "not_exist" }).then(() => {
+                displayError("list of default cities set")
+              }, function () {
+                console.log("Recent City list updated");
+
+              });
+            }
           });
       })
       .catch(function (e) {
-        fdLogger.log(e);
+        //fdLogger.log(e);
+        displayError(e.toString);
+
       });
+    function displayError(error) {
+
+      $('#error').append(`<div class="alert alert-danger alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+          ${error}
+      </div>`);
+
+      $("#error").css("top", $("body").scrollTop() + "px")
+
+    }
   });
 }
