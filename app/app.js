@@ -34,7 +34,7 @@
               $('#lastFiveCities').click(showRecentForecast);
             }
 
-            
+
             /**
              * 
              * @param {*} event 
@@ -82,7 +82,6 @@
                 .then(
                   function (data) {
 
-
                     var weatherInCelsius = JSON.parse(data.response).main.temp - TO_CELSIUS;
                     weatherInCelsius = weatherInCelsius.toFixed(2);
                     var windSpeed = JSON.parse(data.response).wind.speed;
@@ -90,7 +89,6 @@
                     windSpeed = windSpeed.toFixed(2);
                     $('#current-temp').append(`<div> ${weatherInCelsius} &#8451;</div>`);
                     $('#current-windspeed').append(`<div> ${windSpeed} km/hr </div>`);
-
 
                   })
                 .catch(function () {
