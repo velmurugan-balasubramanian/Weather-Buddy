@@ -21,7 +21,6 @@
             bindEventListeners();
             setDefaultCityList();
 
-
             /**
              * combination of functions that are invoked on event.
              */
@@ -77,13 +76,11 @@
              */
             function fetchCurrentWeatherHelper(currrentCity) {
 
-
-              client.request.get(`${CURRENT_URL}q=${currrentCity}&appid=<%=iparam.api_key%>`)
+              client.request.get(`${CURRENT_URL}q=${currrentCity}&appid=<%=iparam.api_key%>&units=metric`)
                 .then(
                   function (data) {
 
-                    var weatherInCelsius = JSON.parse(data.response).main.temp - TO_CELSIUS;
-                    weatherInCelsius = weatherInCelsius.toFixed(2);
+                    var weatherInCelsius = JSON.parse(data.response).main.temp;
                     var windSpeed = JSON.parse(data.response).wind.speed;
                     windSpeed = windSpeed * TO_KMPH;
                     windSpeed = windSpeed.toFixed(2);
@@ -108,24 +105,44 @@
               var choosenDate = $('#weather-date').val();
               var choosenCity = $('#selected-city').val();
 
-              client.request.get(`${FORECAST_URL}q=${choosenCity}&appid=<%=iparam.api_key%>`)
+              client.request.get(`${FORECAST_URL}q=${choosenCity}&appid=<%=iparam.api_key%>&units=metric`)
                 .then(function (data) {
                   const resultArray = JSON.parse(data.response).list;
-                  var forecast = "";
+                  var month = ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December" ];
+                  var forecast = resultArray;
                   var forecastWeather = "";
                   var forecastWindSpeed = "";
-                  var forecast = filterArray(resultArray);
+                  var currentDate = new Date();
+                  var choosenDateOSI = new Date(choosenDate);
+                  
+                  // finding difference between current date and choosen date to locate index of corresponding forecast
+                  var dateDiff = choosenDateOSI.getDate() - currentDate.getDate();
 
-                  forecastWeather = forecast[0].main.temp;
-                  forecastWeather = forecastWeather - TO_CELSIUS;
-                  forecastWeather = forecastWeather.toFixed(2);
-                  forecastWindSpeed = forecast[0].wind.speed;
-                  forecastWindSpeed = forecastWindSpeed * TO_KMPH;
-                  forecastWindSpeed = forecastWindSpeed.toFixed(2);
+                  // finding current the time of first element in the array, to calculate the number  of entries to be removed
+                  var dateFlag = 24 - new Date(forecast[0].dt_txt).getHours();
+                  dateFlag = dateFlag / 3 + 2;
+
+                  //removing weather of present day from the array 
+                  var updatedResultArray = resultArray.slice(dateFlag)
+                  forecast = updatedResultArray;
+
+                  if (dateDiff == 1) {
+                    forecastWeather = forecast[0].main.temp;
+                    forecastWindSpeed = forecast[0].wind.speed;
+                    forecastWindSpeed = forecastWindSpeed * TO_KMPH;
+                    forecastWindSpeed = forecastWindSpeed.toFixed(2);
+                  }
+                  else {
+                    dateDiff = (dateDiff - 1) * 8;
+                    forecastWeather = forecast[dateDiff].main.temp;
+                    forecastWindSpeed = forecast[dateDiff].wind.speed;
+                    forecastWindSpeed = forecastWindSpeed * TO_KMPH;
+                    forecastWindSpeed = forecastWindSpeed.toFixed(2);
+                  }
 
                   $('#forecast').empty();
                   $('#forecast').append(`
-                  <h3>Weather Forecast at ${choosenCity} on ${choosenDate}</h3>
+                  <h3>Weather Forecast at ${choosenCity} on ${choosenDateOSI.getDate()}th  ${month[choosenDateOSI.getMonth()]}  ${choosenDateOSI.getFullYear()}</h3>
                   <div id="Weather-forecast-details" class="fw-content-list">
                     <div class="muted"> Temperature</div>
                     <div> ${forecastWeather} &#8451;</div>
@@ -143,15 +160,6 @@
                 .catch(function () {
                   displayNotification("Unbale to Show forecast, Please try again after sometime");
                 });
-
-              function filterArray(resultArray) {
-
-                var forecast = resultArray.filter(function (data) {
-                  return (data.dt_txt === choosenDate + " 06:00:00");
-                });
-
-                return forecast;
-              }
             }
 
 
@@ -216,7 +224,6 @@
               }
             }
 
-
             /**
              * @description
              * Function to Perform All date Operations such setting min and max dates 
@@ -238,7 +245,6 @@
               $("#weather-date").attr("max", endDate);
               $("#weather-date").attr("value", startdate);
             }
-
 
             /**
              * @description
