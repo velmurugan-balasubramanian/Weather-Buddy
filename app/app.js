@@ -6,8 +6,7 @@
         const CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather?";             // api to Fetch current weather data
         const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast?";           // api to Fetch weather forecast
 
-        // open weather map API return values in derived unit, such as kelvin for weather and m/s for speed, Convert Accordingly 
-        const TO_CELSIUS = 273.15;                                                          // Constant used in converting kelvin value to degree celsius
+        // open weather map API returns windspeed m/s, Convert Accordingly 
         const TO_KMPH = 3.6;
         var city = "";
         var forecastArray = [];
